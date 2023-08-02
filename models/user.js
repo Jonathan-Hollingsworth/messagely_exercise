@@ -1,6 +1,9 @@
 /** User class for message.ly */
 
-
+const db = require("../db");
+const bcrypt = require("bcrypt")
+const ExpressError = require("../expressError");
+const { BCRYPT_WORK_FACTOR } = require("../config")
 
 /** User of the site. */
 
@@ -10,20 +13,43 @@ class User {
    *    {username, password, first_name, last_name, phone}
    */
 
-  static async register({username, password, first_name, last_name, phone}) { }
+  static async register({username, password, first_name, last_name, phone}) { 
+    const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR)
+    const result = await db.query(`INSERT INTO users (username, password, first_name, last_name, phone, join_at)
+                                   VALUES ($1, $2, $3, $4, $5, CURRENT_DATE)
+                                   RETURNING username, password, first_name, last_name, phone`, 
+                                   [username, hashedPassword, first_name, last_name, phone])
+    return result.rows[0]
+  }
 
   /** Authenticate: is this username/password valid? Returns boolean. */
 
-  static async authenticate(username, password) { }
+  static async authenticate(username, password) { 
+    const result = await db.query(`SELECT username, password FROM users WHERE username=$1`,
+                                  [username])
+    const user = result.rows[0]
+    if(user){
+      if (await bcrypt.compare(password, user.password)) {
+        return true
+      }
+      return false
+    }
+    throw new ExpressError("Incorrect username and/or password", 400)
+  }
 
   /** Update last_login_at for user */
 
-  static async updateLoginTimestamp(username) { }
+  static async updateLoginTimestamp(username) { 
+    await db.query(`UPDATE users SET last_login_at=CURRENT_DATE WHERE username=$1`, [username])
+  }
 
   /** All: basic info on all users:
    * [{username, first_name, last_name, phone}, ...] */
 
-  static async all() { }
+  static async all() { 
+    const results = db.query(`SELECT username, first_name, last_name, phone FROM users`)
+    return results.rows
+  }
 
   /** Get: get user by username
    *
@@ -34,7 +60,15 @@ class User {
    *          join_at,
    *          last_login_at } */
 
-  static async get(username) { }
+  static async get(username) { 
+    const result = await db.query(`SELECT username, first_name, last_name, phone, join_at, last_login_at FROM users
+                                   WHERE username=$1`, [username])
+    const user = result.rows[0]
+    if(!user) {
+      throw new ExpressError(`No known user: ${username}`, 400)
+    }
+    return user
+  }
 
   /** Return messages from this user.
    *
@@ -44,7 +78,24 @@ class User {
    *   {username, first_name, last_name, phone}
    */
 
-  static async messagesFrom(username) { }
+  static async messagesFrom(username) { 
+    const messages = []
+    const mResults = await db.query(`SELECT id, to_username, body, sent_at, read_at FROM messages
+                                     WHERE from_username=$1`, [username])
+    const messageRows = mResults.rows
+    for (const message of messageRows) {
+      const uResult = await db.query(`SELECT username, first_name, last_name, phone FROM users
+                                      WHERE username = $1`, [message.to_username])
+      const to_user = uResult.rows[0]
+      messages.push({
+        id: message.id, 
+        to_user: to_user, 
+        body: message.body, 
+        sent_at: message.sent_at_at, 
+        read_at: message.sent_at});
+    };
+    return messages
+  }
 
   /** Return messages to this user.
    *
@@ -54,7 +105,24 @@ class User {
    *   {username, first_name, last_name, phone}
    */
 
-  static async messagesTo(username) { }
+  static async messagesTo(username) { 
+    const messages = []
+    const mResults = await db.query(`SELECT id, from_username, body, sent_at, read_at FROM messages
+                                     WHERE to_username=$1`, [username])
+    const messageRows = mResults.rows
+    for (const message of messageRows) {
+      const uResult = await db.query(`SELECT username, first_name, last_name, phone FROM users
+                                      WHERE username = $1`, [message.from_username])
+      const from_user = uResult.rows[0]
+      messages.push({
+        id: message.id, 
+        from_user: from_user, 
+        body: message.body, 
+        sent_at: message.sent_at_at, 
+        read_at: message.sent_at});
+    };
+    return messages
+  }
 }
 
 
