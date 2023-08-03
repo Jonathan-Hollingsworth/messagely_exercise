@@ -47,7 +47,7 @@ class User {
    * [{username, first_name, last_name, phone}, ...] */
 
   static async all() { 
-    const results = db.query(`SELECT username, first_name, last_name, phone FROM users`)
+    const results = await db.query(`SELECT username, first_name, last_name, phone FROM users`)
     return results.rows
   }
 
@@ -91,8 +91,8 @@ class User {
         id: message.id, 
         to_user: to_user, 
         body: message.body, 
-        sent_at: message.sent_at_at, 
-        read_at: message.sent_at});
+        sent_at: message.sent_at, 
+        read_at: message.read_at});
     };
     return messages
   }
@@ -118,8 +118,8 @@ class User {
         id: message.id, 
         from_user: from_user, 
         body: message.body, 
-        sent_at: message.sent_at_at, 
-        read_at: message.sent_at});
+        sent_at: message.sent_at, 
+        read_at: message.read_at});
     };
     return messages
   }
