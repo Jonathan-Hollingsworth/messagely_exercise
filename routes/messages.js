@@ -20,8 +20,8 @@ const router = new express.Router()
 router.get("/:id", ensureLoggedIn, async function(req, res, next) {
     try {
         const id = req.params.id
-        const message = Message.get(id)
-        if(req.user.username === (await message).to_user.username || req.user.username === (await message).from_user_user.username){
+        const message = await Message.get(id)
+        if(req.user.username === message.to_user.username || req.user.username === message.from_user.username){
             return res.json({message: message})
         }
         throw new ExpressError("Unauthorized", 401)
