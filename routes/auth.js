@@ -33,7 +33,7 @@ router.post("/login", async function(req, res, next) {
 router.post("/register", async function(req, res, next) {
     try {
         const {username, password, first_name, last_name, phone} = req.body
-        await User.register(username, password, first_name, last_name, phone)
+        await User.register({username, password, first_name, last_name, phone})
         await User.updateLoginTimestamp(username)
         let payload = {username: username}
         let token = jwt.sign(payload, SECRET_KEY)
