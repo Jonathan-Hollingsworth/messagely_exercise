@@ -1,7 +1,7 @@
 const express = require("express");
 const ExpressError = require("../expressError");
 const Message = require("../models/message")
-const { ensureLoggedIn } = require("./middleware/auth");
+const { ensureLoggedIn } = require("../middleware/auth");
 
 const router = new express.Router()
 
