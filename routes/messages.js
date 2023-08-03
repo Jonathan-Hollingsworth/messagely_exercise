@@ -68,3 +68,5 @@ router.post("/:id/read", ensureLoggedIn, async function(req, res, next) {
         return next(error)
     }
 })
+
+module.exports = router
