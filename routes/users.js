@@ -60,7 +60,7 @@ router.get("/:username/to", async function(req, res, next) {
  *                 to_user: {username, first_name, last_name, phone}}, ...]}
  *
  **/
-router.get("/:username/to", async function(req, res, next) {
+router.get("/:username/from", async function(req, res, next) {
     try {
         const username = req.params.username
         const messages = await User.messagesFrom(username)
