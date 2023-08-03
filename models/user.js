@@ -32,9 +32,8 @@ class User {
       if (await bcrypt.compare(password, user.password)) {
         return true
       }
-      return false
     }
-    throw new ExpressError("Incorrect username and/or password", 400)
+    return false
   }
 
   /** Update last_login_at for user */
