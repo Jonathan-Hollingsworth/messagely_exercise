@@ -15,8 +15,8 @@ class User {
 
   static async register({username, password, first_name, last_name, phone}) { 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_WORK_FACTOR)
-    const result = await db.query(`INSERT INTO users (username, password, first_name, last_name, phone, join_at)
-                                   VALUES ($1, $2, $3, $4, $5, CURRENT_DATE)
+    const result = await db.query(`INSERT INTO users (username, password, first_name, last_name, phone, join_at, last_login_at)
+                                   VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, CURRENT_DATE)
                                    RETURNING username, password, first_name, last_name, phone`, 
                                    [username, hashedPassword, first_name, last_name, phone])
     return result.rows[0]
